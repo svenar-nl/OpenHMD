@@ -329,6 +329,7 @@ static ohmd_device* open_device(ohmd_driver* driver, ohmd_device_desc* desc)
 	wmr_priv* priv = ohmd_alloc(driver->ctx, sizeof(wmr_priv));
 	unsigned char *config;
 	bool samsung = false;
+    	bool lenovo = false;
 
 	if(!priv)
 		return NULL;
@@ -353,6 +354,10 @@ static ohmd_device* open_device(ohmd_driver* driver, ohmd_device_desc* desc)
 		if (strncmp(hdr->name,
 			    "Samsung Windows Mixed Reality 800ZAA", 64) == 0) {
 			samsung = true;
+		}
+		if (strncmp(hdr->name, "Lenovo Explorer", 64) == 0) {
+		    lenovo = true;
+		    LOGI("Using Lenovo config\n");
 		}
 
 		char *json_data = (char*)config + hdr->json_start + sizeof(uint16_t);
@@ -424,6 +429,16 @@ static ohmd_device* open_device(ohmd_driver* driver, ohmd_device_desc* desc)
 		priv->base.properties.lens_vpos = 0.03304f; /* FIXME */
 		priv->base.properties.fov = DEG_TO_RAD(110.0f);
 		priv->base.properties.ratio = 0.9f;
+	} else if (lenovo) {
+		// Lenovo Explorer has two 2.89" 1440x1440 LCDs
+		priv->base.properties.hsize = 0.1135f;
+		priv->base.properties.vsize = 0.051905f;
+		priv->base.properties.hres = resolution_h;
+		priv->base.properties.vres = resolution_v;
+		priv->base.properties.lens_sep = 0.06f;      /* FIXME */
+		priv->base.properties.lens_vpos = 0.025953f; /* FIXME */
+		priv->base.properties.fov = DEG_TO_RAD(90.0f);
+		priv->base.properties.ratio = 1.0f;
 	} else {
 		// Most Windows Mixed Reality Headsets have two 2.89" 1440x1440 LCDs
 		priv->base.properties.hsize = 0.103812f;
